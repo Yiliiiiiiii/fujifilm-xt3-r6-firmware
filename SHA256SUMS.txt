@@ -1,0 +1,10 @@
+# Fujifilm X-T3 Hardened R6 (based on Stock 5.11) - Official Release Checksums
+
+# GitHub Release ZIP Archives
+d8b2918031db248cdadbf84cafde9b1f10bafe1134e5e2b4ad2768139405f5db  XT3_Hardened_R6_SD_FastBoot_Test.zip
+04904052926e16c90f339ff132d315ed55225d9d2ff4509fe07b881f14e5542c  XT3_Hardened_R6_Firmware_DAT.zip
+
+# Extracted Camera Binaries
+a218eca392f6d1a645ff1e8388dada4325a9b0a8bb30a3ffc75d7429b8085983  ffinit.bin
+d4bc67e9ca10f25e45c60845be8d7e22ad0264bb8cb0f1186a9f3695a589225b  ffboot.bin
+59658c432421b60d986d1815d50a685d078ebc5222647ea140572d0f979f08a0  FWUP0019.DAT

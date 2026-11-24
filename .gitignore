@@ -1,0 +1,12 @@
+# Exclude firmware binaries, archives, personal camera dumps, and RAW photos
+*.DAT
+*.dat
+*.BIN
+*.bin
+*.zip
+*.RAF
+*.raf
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
