@@ -1,22 +1,50 @@
-# Fujifilm X-T3 Hardened R6 Custom Firmware (based on Stock 5.11)
+# Fujifilm X-T3 Hardened R6 Patcher (based on Stock 5.11)
 
-> ⚠️ **免责声明 / IMPORTANT DISCLAIMER**
+> ⚠️ **免责声明与版权合规说明 / DISCLAIMER & COPYRIGHT NOTICE**
 >
-> 本项目为非官方社区研究与个人折腾产物，与 FUJIFILM Corporation 没有任何关联。刷写第三方修改固件存在**机身变砖、数据丢失及失去官方保修**的风险。**强烈建议先使用零刷机的 SD 快启动测试包在自己机身上充分体验验证**，并在任何刷写前做好原厂设置备份与满电供电保障。使用本项目产生的一切风险与后果由使用者自行承担。
+> - 本仓库与 Release **不包含任何富士胶片（FUJIFILM）原厂固件二进制文件**，仅提供约 **94 KB** 的纯 XOR 差分补丁（`r6_stock511.x3p`）与零依赖 Python 本地合成脚本（`build_r6.py`）。用户需自行前往富士官网下载官方原厂 X-T3 5.11 固件 `FWUP0019.DAT`，在自己电脑上本地还原全部测试包与固件文件。
+> - 本项目为非官方社区研究与个人折腾产物，与 FUJIFILM Corporation 没有任何关联。刷写第三方修改固件存在**机身变砖、数据丢失及失去官方保修**的风险。**强烈建议先使用零刷机的 SD 快启动测试包在自己机身上体验验证**，并在任何刷写前做好个人设置备份与满电保障。使用本项目产生的一切风险由使用者自行承担。
 >
-> *Unofficial community firmware modification for Fujifilm X-T3 (based on Stock 5.11). Not affiliated with FUJIFILM. Flashing carries bricking risk — ALWAYS test with the zero-flash SD Fast-Boot Test Package first and back up your camera settings before flashing. Use strictly at your own risk.*
+> *No proprietary Fujifilm firmware binaries are hosted in this repository or its Releases. Only a 94 KB pure XOR-delta patch (`r6_stock511.x3p`) and a zero-dependency Python 3 local builder (`build_r6.py`) are distributed. Download official Fujifilm X-T3 5.11 `FWUP0019.DAT` directly from Fujifilm's website and build locally. Use strictly at your own risk.*
 
 ---
 
-## 一、下载 Release 成品包 / Download
+## 一、三步本地一键合成（Windows / macOS / Linux 通用，零依赖）
 
-请前往本仓库右侧 **[Releases](https://github.com/Yiliiiiiiii/fujifilm-xt3-r6-firmware/releases)** 页面下载最新 **`v1.0.0-r6`** 附件：
+只需要 **Python 3**（无需安装任何第三方库）：
 
-| 发布附件 | 用途 | 大小 | SHA-256 |
+### 第 1 步：从富士官网下载官方原厂 X-T3 5.11 固件
+前往富士官方支持页面下载 **X-T3 Ver.5.11** 固件 `FWUP0019.DAT`：
+- 官方页面：https://www.fujifilm-x.com/global/support/download/firmware/cameras/x-t3/
+- 核对输入文件大小：`50,136,252 B`，SHA-256：`9f2c75fd8a16a1d71b9218f6dbd3144b1f11820bcecd3a9608c8cda9f25f95a3`（脚本会自动校验）。
+
+### 第 2 步：下载本仓库的差分补丁工具包
+前往右侧 **[Releases](https://github.com/Yiliiiiiiii/fujifilm-xt3-r6-firmware/releases)** 下载 `v1.0.0-r6` 补丁包（仅 **~100 KB**），或直接克隆本仓库：
+
+```bash
+git clone https://github.com/Yiliiiiiiii/fujifilm-xt3-r6-firmware.git
+cd fujifilm-xt3-r6-firmware
+```
+
+### 第 3 步：一键本地生成并自动校验 SHA-256
+
+```bash
+# 同时生成「零刷机 SD 快启动测试包」+「正式刷机包 FWUP0019.DAT」（约 12 秒）
+python build_r6.py /path/to/official_511_FWUP0019.DAT -o out_r6
+
+# 如果只想先体验零刷机 SD 快启动测试包（约 2 秒完成）
+python build_r6.py /path/to/official_511_FWUP0019.DAT -o out_r6 --sd-only
+```
+
+生成完成后会在 `out_r6/` 下得到并自动校验以下文件（100% 逐字节匹配已验证的 Hardened R6 哈希）：
+
+| 本地生成路径 | 用途 | 字节数 | 锁定 SHA-256 |
 | --- | --- | ---: | --- |
-| `XT3_Hardened_R6_SD_FastBoot_Test.zip` | **零刷机 SD 快启动测试包**（含配对 `ffinit.bin` + `ffboot.bin`，纯内存运行，拔卡即恢复原厂） | 10.25 MB | `d8b2918031db248cdadbf84cafde9b1f10bafe1134e5e2b4ad2768139405f5db` |
-| `XT3_Hardened_R6_Firmware_DAT.zip` | **Hardened R6 固件包**（含 `FWUP0019.DAT`，主校验和 `@0x20C = 0xad1e4ed5`） | 16.75 MB | `04904052926e16c90f339ff132d315ed55225d9d2ff4509fe07b881f14e5542c` |
-| `SHA256SUMS.txt` | 压缩包与解压后全部二进制文件 SHA-256 校验清单 | — | 见仓库根目录 [SHA256SUMS.txt](SHA256SUMS.txt) |
+| `out_r6/sd_fastboot/ffinit.bin` | **零刷机 SD 快启动测试包**（与 `ffboot.bin` 配对） | `40,808` | `a218eca392f6d1a645ff1e8388dada4325a9b0a8bb30a3ffc75d7429b8085983` |
+| `out_r6/sd_fastboot/ffboot.bin` | **零刷机 SD 快启动测试包**（纯内存运行，拔卡即回原厂） | `30,937,088` | `d4bc67e9ca10f25e45c60845be8d7e22ad0264bb8cb0f1186a9f3695a589225b` |
+| `out_r6/firmware_dat/FWUP0019.DAT` | **Hardened R6 正式固件包**（主校验和 `@0x20C = 0xad1e4ed5`） | `50,136,252` | `59658c432421b60d986d1815d50a685d078ebc5222647ea140572d0f979f08a0` |
+
+> 将文件复制到 SD 卡后，可随时运行 `python verify_release.py E:\`（替换为你的 SD 卡盘符）二次核对卡内文件完整性。
 
 ---
 
@@ -36,50 +64,28 @@
 
 ---
 
-## 三、使用指南（强烈建议先走步骤 1 零刷机体验）
+## 三、上机使用指南（强烈建议先走方式 A 零刷机体验）
 
-### 准备：校验文件完整性
-下载 Release 文件后，运行仓库自带的零依赖校验脚本（同时校验 ZIP 与解压后的文件）：
+### 方式 A（强烈推荐）：SD 快启动测试包（零刷机、纯内存运行）
+此方式**完全不改写机身闪存**，最适合零风险先在自己机身上体验全部 R6 功能：
 
-```bash
-python verify_release.py /path/to/downloaded_files
-```
-
-解压后二进制文件必须严格匹配以下字节数与 SHA-256：
-
-| 文件名 | 字节数 | SHA-256 |
-| --- | ---: | --- |
-| `ffinit.bin` | `40,808` | `a218eca392f6d1a645ff1e8388dada4325a9b0a8bb30a3ffc75d7429b8085983` |
-| `ffboot.bin` | `30,937,088` | `d4bc67e9ca10f25e45c60845be8d7e22ad0264bb8cb0f1186a9f3695a589225b` |
-| `FWUP0019.DAT` | `50,136,252` | `59658c432421b60d986d1815d50a685d078ebc5222647ea140572d0f979f08a0` |
-
----
-
-### 步骤 1（推荐）：SD 快启动测试包（零刷机、纯内存运行）
-此方式**完全不改写机身闪存**，非常适合先在自己机身上体验全部 R6 功能：
-
-1. 先用官方 **FUJIFILM X RAW Studio** 或 **X Acquire** 通过 USB 备份你的机身设置。
+1. 先用官方 **FUJIFILM X RAW Studio** 或 **X Acquire** 通过 USB 备份你的个人机身设置。
 2. 准备一张干净的 FAT32 / exFAT SD 卡（插在**卡槽 1**），确保根目录**没有**旧的 `FWUP0019.DAT` 或其它引导文件。
-3. 将 `XT3_Hardened_R6_SD_FastBoot_Test.zip` 解压出的**配对文件** `ffinit.bin` 和 `ffboot.bin` 同时复制到 SD 卡根目录，并在卡上再次核对 SHA-256。
+3. 将本地生成的 `out_r6/sd_fastboot/ffinit.bin` 与 `out_r6/sd_fastboot/ffboot.bin` **配对复制到 SD 卡根目录**，并运行 `python verify_release.py <SD卡路径>` 核对哈希。
 4. 插卡后**直接正常拨动电源开关至 `ON`**（无需按任何组合键），约 **3 秒**即从 SD 卡加载 Hardened R6 进入取景画面。
-5. 如需恢复原厂固件：**正常关机**，拔出 SD 卡或删除根目录的 `ffinit.bin`、`ffboot.bin`，重新开机即 100% 回到机身原厂系统。
+5. 如需恢复原厂系统：**正常关机**，拔出 SD 卡或删除根目录的 `ffinit.bin`、`ffboot.bin`，重新开机即 100% 回到机身原厂固件。
 
----
+### 方式 B（高风险）：正式刷写机身固件 `FWUP0019.DAT`
+仅建议在**已完成方式 A 零刷机实测**、且明确理解刷机风险的前提下操作：
 
-### 步骤 2（高风险）：正式刷写机身固件 `FWUP0019.DAT`
-仅建议在**已完成步骤 1 零刷机实测**、且明确理解刷机风险的前提下操作：
-
-1. **刷前必备**：
-   - 使用**满电原装电池**；
-   - 已用官方软件做好个人机身设置与 C1–C7 备份；
-   - 提前准备好官方原厂 5.11 恢复材料。
-2. 将 `XT3_Hardened_R6_Firmware_DAT.zip` 解压得到的 `FWUP0019.DAT` 复制到干净 SD 卡（**卡槽 1**）根目录，确认根目录无其它 `.DAT` 文件，并对卡内文件再次运行 `verify_release.py` 校验哈希。
-3. **按住 `DISP/BACK` 键不放的同时拨动电源开关至 `ON`**，进入官方固件更新确认页面。
-4. **关于原厂 5.11 同版本提示**：若你的机身当前已经是原厂 `5.11`，原版更新程序可能会阻止 `5.11 → 5.11` 同版本直接刷写（需从低于 5.11 的版本升级，或搭配对应版本的合法更新引导流程）。
+1. **刷前必备**：使用**满电原装电池**；提前做好个人机身设置与 C1–C7 备份；准备好官方原厂 5.11 恢复方案。
+2. 将本地生成的 `out_r6/firmware_dat/FWUP0019.DAT` 复制到干净 SD 卡（**卡槽 1**）根目录，确保无其它 `.DAT` 文件，并对卡内文件再次运行 `verify_release.py` 核对哈希。
+3. **按住 `DISP/BACK` 键不放的同时拨动电源开关至 `ON`**，进入官方固件更新界面。
+4. **关于原厂 5.11 同版本提示**：若机身当前已经是原厂 `5.11`，原版更新程序通常会拒绝 `5.11 → 5.11` 同版本直接刷写（需从低于 5.11 版本升级，或配合相应同版本合法引导流程）。
 5. 写入过程中**绝对不要关机、拔电池、拔卡或操作按键**，直至机身提示升级完成并正常关机重启。
 
 ---
 
-## 四、技术验证记录
-
-详细 R4 → R5 → R6 演进说明、补丁归因与 10 轴离线独立验收摘要请参阅：[docs/CHANGELOG_AND_VERIFICATION.md](docs/CHANGELOG_AND_VERIFICATION.md)。
+## 四、技术验证记录与致谢
+- 详细 R4 → R5 → R6 演进说明与 10 轴离线独立验收摘要见：[docs/CHANGELOG_AND_VERIFICATION.md](docs/CHANGELOG_AND_VERIFICATION.md)。
+- `build_r6.py` 内置的纯 Python FFLZ 编解码器参考开源项目 [tiredboffin/fffw](https://github.com/tiredboffin/fffw)（MIT License）。

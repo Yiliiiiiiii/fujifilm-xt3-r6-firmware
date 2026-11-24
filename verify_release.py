@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify Fujifilm X-T3 Hardened R6 release ZIP archives and extracted binaries.
+"""Verify the Hardened R6 delta patch and locally generated camera files.
 
 Zero third-party dependencies (Python 3 standard library only).
 
@@ -10,17 +10,12 @@ Usage:
 import hashlib
 import struct
 import sys
-import zipfile
 from pathlib import Path
 
 EXPECTED = {
-    "XT3_Hardened_R6_SD_FastBoot_Test.zip": (
-        10_250_555,
-        "d8b2918031db248cdadbf84cafde9b1f10bafe1134e5e2b4ad2768139405f5db",
-    ),
-    "XT3_Hardened_R6_Firmware_DAT.zip": (
-        16_747_891,
-        "04904052926e16c90f339ff132d315ed55225d9d2ff4509fe07b881f14e5542c",
+    "r6_stock511.x3p": (
+        95_988,
+        "be90b7ee572992be6434d783cd8fee33d84ee35a2a77ed133e4d401229a877d1",
     ),
     "ffinit.bin": (
         40_808,
@@ -39,73 +34,50 @@ EXPECTED = {
 EXPECTED_DAT_MAIN_CSUM = 0xAD1E4ED5
 
 
-def sha256_bytes(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def verify_blob(name: str, data: bytes) -> bool:
-    exp_size, exp_sha = EXPECTED[name]
+def verify_file(item: Path) -> bool:
+    exp_size, exp_sha = EXPECTED[item.name]
+    data = item.read_bytes()
     actual_size = len(data)
-    actual_sha = sha256_bytes(data)
+    actual_sha = hashlib.sha256(data).hexdigest()
     ok = (actual_size == exp_size) and (actual_sha == exp_sha)
 
     extra = ""
-    if name == "FWUP0019.DAT" and actual_size >= 0x210:
+    if item.name == "FWUP0019.DAT" and actual_size >= 0x210:
         csum = struct.unpack_from("<I", data, 0x20C)[0]
         if csum != EXPECTED_DAT_MAIN_CSUM:
             ok = False
         extra = f"  main_csum@0x20C=0x{csum:08x}"
 
     status = "PASS" if ok else "FAIL"
-    print(f"[{status}] {name:38s}  {actual_size:10,d} B  sha256={actual_sha}{extra}")
+    print(f"[{status}] {str(item):45s}  {actual_size:10,d} B  sha256={actual_sha}{extra}")
     if not ok:
         print(f"       expected: {exp_size:10,d} B  sha256={exp_sha}")
     return ok
 
 
-def verify_path(path: Path) -> tuple[int, int]:
+def main(argv: list[str]) -> int:
+    roots = [Path(a) for a in argv[1:]] if len(argv) > 1 else [Path(".")]
     checked = 0
     failed = 0
-    targets = sorted(path.iterdir()) if path.is_dir() else [path]
-    for item in targets:
-        if not item.is_file():
-            continue
-        if item.name not in EXPECTED:
-            continue
-        data = item.read_bytes()
-        checked += 1
-        if not verify_blob(item.name, data):
+    for root in roots:
+        if not root.exists():
+            print(f"[ERROR] Not found: {root}")
             failed += 1
-        if item.suffix.lower() == ".zip":
-            with zipfile.ZipFile(item, "r") as zf:
-                for member in zf.namelist():
-                    if member in EXPECTED:
-                        checked += 1
-                        if not verify_blob(member, zf.read(member)):
-                            failed += 1
-    return checked, failed
-
-
-def main(argv: list[str]) -> int:
-    paths = [Path(a) for a in argv[1:]] if len(argv) > 1 else [Path(".")]
-    total_checked = 0
-    total_failed = 0
-    for p in paths:
-        if not p.exists():
-            print(f"[ERROR] Not found: {p}")
-            total_failed += 1
             continue
-        c, f = verify_path(p)
-        total_checked += c
-        total_failed += f
+        items = sorted(root.rglob("*")) if root.is_dir() else [root]
+        for item in items:
+            if item.is_file() and item.name in EXPECTED:
+                checked += 1
+                if not verify_file(item):
+                    failed += 1
 
-    if total_checked == 0:
-        print("No known R6 release files found in the specified path(s).")
+    if checked == 0:
+        print("No known R6 patch or output files found in the specified path(s).")
         print("Expected filenames:", ", ".join(EXPECTED.keys()))
         return 1
 
-    print(f"\nSummary: {total_checked} file(s) checked, {total_failed} failure(s).")
-    return 0 if total_failed == 0 else 1
+    print(f"\nSummary: {checked} file(s) checked, {failed} failure(s).")
+    return 0 if failed == 0 else 1
 
 
 if __name__ == "__main__":
