@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Build Fujifilm X-T3 Hardened R9 firmware & SD Fast-Boot Test Package locally
+"""Build Fujifilm X-T3 Hardened R10 firmware & SD Fast-Boot Test Package locally
 from Fujifilm's official X-T3 Stock 5.11 firmware (FWUP0019.DAT).
 
 Zero third-party dependencies (Python 3 standard library only; works on Windows,
 macOS, and Linux). No proprietary Fujifilm firmware binaries are stored in this
 repository — the user supplies their own official Stock 5.11 FWUP0019.DAT
 downloaded from Fujifilm's website, and this script applies the pure XOR-delta
-patch (r9_stock511.x3p) and verifies every output file against pinned SHA-256s.
+patch (r10_stock511.x3p) and verifies every output file against pinned SHA-256s.
 
 FFLZ codec follows tiredboffin/fffw (MIT License).
 
 Usage:
-    python build_r9.py <path/to/stock_511_FWUP0019.DAT> [-o out_r9] [--sd-only] [--dat-only]
+    python build_r10.py <path/to/stock_511_FWUP0019.DAT> [-o out_r10] [--sd-only] [--dat-only]
 """
 
 from __future__ import annotations
@@ -30,26 +30,26 @@ INVERT = bytes(255 - i for i in range(256))
 STOCK_511_SIZE = 50_136_252
 STOCK_511_SHA256 = "9f2c75fd8a16a1d71b9218f6dbd3144b1f11820bcecd3a9608c8cda9f25f95a3"
 
-PATCH_MAGIC = b"X3R9P001"
-PATCH_DEFAULT_NAME = "r9_stock511.x3p"
-PATCH_SHA256 = "7ddb1949e3bbf2f561134213e886fd6d93153562f274420842a547776f42b5c0"
+PATCH_MAGIC = b"X3R10P01"
+PATCH_DEFAULT_NAME = "r10_stock511.x3p"
+PATCH_SHA256 = "557746385bebcc8b0b5b431f9b8ed6b1491c309b929b109bd7ea0fee886f2cb6"
 
 EXPECTED_OUTPUTS = {
     "ffinit.bin": (
         40_808,
-        "1b83b4547eac786b9ab062b6e0bb56438f06cae58d479ac1246ff7633b76414f",
+        "8005819e62143153ececeecfadc04772c2c3170b04963c34ca065bc66bfdd787",
     ),
     "ffboot.bin": (
         30_937_088,
-        "27c5e6596bfdaeaec7c6a129da32a99662908138c5c2d8f3fdbbeaf517ceac2a",
+        "72a29e1d702085f1fd2d1f125c61ed7dc6d8e06e816eaa627500b6a27ff513e9",
     ),
     "FWUP0019.DAT": (
         50_136_252,
-        "d4e8950d61915d7716c2b408783b35d7e831084f70e8f1507dd9793cfb90cfb9",
+        "20095acc5f4a7edc4ca8b22ead12d656f33f8bfe6b7525301a6a703dc94d8047",
     ),
 }
-EXPECTED_DAT_MAIN_CSUM = 0xAD0EAD23
-EXPECTED_FULL_SD_SHA256 = "3b42026799b1000ed06218766c7cc462bc9dd0f8db95d1894c5f0bf46044eb0e"
+EXPECTED_DAT_MAIN_CSUM = 0xAD0E6C5C
+EXPECTED_FULL_SD_SHA256 = "403fc297bf40321fe2381e080382c03a63941ecaa5714d0f048e15e5441db4d2"
 
 SEG0_OFFSET, SEG0_CAPACITY = 0x260274, 0x2E0000
 SEG1_OFFSET, SEG1_CAPACITY = 0x540274, 0x480000
@@ -299,7 +299,7 @@ def verify_and_write(path: Path, name: str, data: bytes) -> None:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        description="Locally reconstruct Fujifilm X-T3 Hardened R9 firmware & SD Fast-Boot Test Package from official Stock 5.11 FWUP0019.DAT."
+        description="Locally reconstruct Fujifilm X-T3 Hardened R10 firmware & SD Fast-Boot Test Package from official Stock 5.11 FWUP0019.DAT."
     )
     parser.add_argument("stock_dat", type=Path, help="Path to official Fujifilm X-T3 5.11 FWUP0019.DAT")
     parser.add_argument(
@@ -309,7 +309,7 @@ def main(argv: list[str]) -> int:
         default=Path(__file__).resolve().parent / PATCH_DEFAULT_NAME,
         help=f"Path to delta patch file (default: {PATCH_DEFAULT_NAME} beside this script)",
     )
-    parser.add_argument("-o", "--out", type=Path, default=Path("out_r9"), help="Output directory (default: out_r9)")
+    parser.add_argument("-o", "--out", type=Path, default=Path("out_r10"), help="Output directory (default: out_r10)")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--sd-only", action="store_true", help="Build only the zero-flash SD Fast-Boot Test Package (~2s)")
     mode.add_argument("--dat-only", action="store_true", help="Build only FWUP0019.DAT (~12s)")
@@ -336,16 +336,16 @@ def main(argv: list[str]) -> int:
     sec_outer, sec_seg0, sec_seg1, sec_sd, sec_init = load_patch(args.patch)
     print(f"  [OK] Patch {args.patch.name} verified ({args.patch.stat().st_size:,} B)")
 
-    print("[2/4] Unpacking Stock 5.11 segments and applying R9 deltas...")
+    print("[2/4] Unpacking Stock 5.11 segments and applying R10 deltas...")
     stock_img = stock_raw.translate(INVERT)
     stock_seg0 = unpack_fflz(stock_img, SEG0_OFFSET)
     stock_seg1 = unpack_fflz(stock_img, SEG1_OFFSET)
 
-    r9_outer = apply_xor_section(stock_img, sec_outer)
-    r9_seg0 = apply_xor_section(stock_seg0, sec_seg0)
-    r9_seg1 = apply_xor_section(stock_seg1, sec_seg1)
-    seg0_base = struct.unpack_from("<I", r9_seg0, 4)[0]
-    seg1_base = struct.unpack_from("<I", r9_seg1, 4)[0]
+    r10_outer = apply_xor_section(stock_img, sec_outer)
+    r10_seg0 = apply_xor_section(stock_seg0, sec_seg0)
+    r10_seg1 = apply_xor_section(stock_seg1, sec_seg1)
+    seg0_base = struct.unpack_from("<I", r10_seg0, 4)[0]
+    seg1_base = struct.unpack_from("<I", r10_seg1, 4)[0]
 
     if not args.dat_only:
         print("[3/4] Building zero-flash SD Fast-Boot Test Package (ffinit.bin + ffboot.bin)...")
@@ -361,9 +361,9 @@ def main(argv: list[str]) -> int:
             (0x00E20400, 0x001E0274, 0x0002C000),
             (0x033B1000, 0x009C0274, 0x0090E000),
         ):
-            ram[dst : dst + sz] = r9_outer[src : src + sz]
-        ram[seg0_base : seg0_base + len(r9_seg0)] = r9_seg0
-        ram[seg1_base : seg1_base + len(r9_seg1)] = r9_seg1
+            ram[dst : dst + sz] = r10_outer[src : src + sz]
+        ram[seg0_base : seg0_base + len(r10_seg0)] = r10_seg0
+        ram[seg1_base : seg1_base + len(r10_seg1)] = r10_seg1
 
         full_sd = apply_xor_section(bytes(ram), sec_sd)
         if sha256(full_sd) != EXPECTED_FULL_SD_SHA256:
@@ -394,25 +394,25 @@ def main(argv: list[str]) -> int:
 
     if not args.sd_only:
         print("[4/4] Compressing FFLZ segments and packing FWUP0019.DAT (~10s)...")
-        packed0 = pack_fflz(r9_seg0)
-        packed1 = pack_fflz(r9_seg1)
+        packed0 = pack_fflz(r10_seg0)
+        packed1 = pack_fflz(r10_seg1)
         if len(packed0) >= SEG0_CAPACITY or len(packed1) >= SEG1_CAPACITY:
             raise RuntimeError("Compressed segment exceeded container capacity")
 
-        r9_img = bytearray(r9_outer)
-        r9_img[SEG0_OFFSET : SEG0_OFFSET + SEG0_CAPACITY] = packed0 + bytes(SEG0_CAPACITY - len(packed0))
-        r9_img[SEG1_OFFSET : SEG1_OFFSET + SEG1_CAPACITY] = packed1 + bytes(SEG1_CAPACITY - len(packed1))
+        r10_img = bytearray(r10_outer)
+        r10_img[SEG0_OFFSET : SEG0_OFFSET + SEG0_CAPACITY] = packed0 + bytes(SEG0_CAPACITY - len(packed0))
+        r10_img[SEG1_OFFSET : SEG1_OFFSET + SEG1_CAPACITY] = packed1 + bytes(SEG1_CAPACITY - len(packed1))
 
-        r9_raw = bytearray(stock_raw)
-        r9_raw[0x274:] = bytes(r9_img[0x274:]).translate(INVERT)
-        csum = dat_main_checksum(bytes(r9_img), bytes(r9_raw))
+        r10_raw = bytearray(stock_raw)
+        r10_raw[0x274:] = bytes(r10_img[0x274:]).translate(INVERT)
+        csum = dat_main_checksum(bytes(r10_img), bytes(r10_raw))
         if csum != EXPECTED_DAT_MAIN_CSUM:
             raise RuntimeError(f"Main checksum mismatch: {csum:#x} != {EXPECTED_DAT_MAIN_CSUM:#x}")
-        struct.pack_into("<I", r9_raw, 0x20C, csum)
+        struct.pack_into("<I", r10_raw, 0x20C, csum)
 
-        verify_and_write(args.out / "firmware_dat" / "FWUP0019.DAT", "FWUP0019.DAT", bytes(r9_raw))
+        verify_and_write(args.out / "firmware_dat" / "FWUP0019.DAT", "FWUP0019.DAT", bytes(r10_raw))
 
-    print(f"\nAll requested Hardened R9 outputs built and verified in {time.time() - t0:.2f}s!")
+    print(f"\nAll requested Hardened R10 outputs built and verified in {time.time() - t0:.2f}s!")
     return 0
 
 
