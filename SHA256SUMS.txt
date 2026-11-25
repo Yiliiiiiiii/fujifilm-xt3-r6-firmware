@@ -1,12 +1,12 @@
-# Fujifilm X-T3 Hardened R6 (based on Stock 5.11) - Pure Delta Patch & Expected Outputs
+# Fujifilm X-T3 Hardened R9 (based on Stock 5.11) - Pure Delta Patch & Expected Outputs
 
-# Pure XOR-Delta Patch File (95,988 bytes, zero proprietary stock firmware sections)
-be90b7ee572992be6434d783cd8fee33d84ee35a2a77ed133e4d401229a877d1  r6_stock511.x3p
+# Pure XOR-Delta Patch File (98,320 bytes, zero proprietary stock firmware sections)
+7ddb1949e3bbf2f561134213e886fd6d93153562f274420842a547776f42b5c0  r9_stock511.x3p
 
 # Required Official Input (download from Fujifilm's official X-T3 firmware page)
 # 9f2c75fd8a16a1d71b9218f6dbd3144b1f11820bcecd3a9608c8cda9f25f95a3  FWUP0019.DAT (Official Stock 5.11)
 
-# Locally Reconstructed Hardened R6 Outputs (produced by build_r6.py)
-a218eca392f6d1a645ff1e8388dada4325a9b0a8bb30a3ffc75d7429b8085983  ffinit.bin
-d4bc67e9ca10f25e45c60845be8d7e22ad0264bb8cb0f1186a9f3695a589225b  ffboot.bin
-59658c432421b60d986d1815d50a685d078ebc5222647ea140572d0f979f08a0  FWUP0019.DAT
+# Locally Reconstructed Hardened R9 Outputs (produced by build_r9.py)
+1b83b4547eac786b9ab062b6e0bb56438f06cae58d479ac1246ff7633b76414f  ffinit.bin
+27c5e6596bfdaeaec7c6a129da32a99662908138c5c2d8f3fdbbeaf517ceac2a  ffboot.bin
+d4e8950d61915d7716c2b408783b35d7e831084f70e8f1507dd9793cfb90cfb9  FWUP0019.DAT

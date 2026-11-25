@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the Hardened R6 delta patch and locally generated camera files.
+"""Verify the Hardened R9 delta patch and locally generated camera files.
 
 Zero third-party dependencies (Python 3 standard library only).
 
@@ -13,25 +13,25 @@ import sys
 from pathlib import Path
 
 EXPECTED = {
-    "r6_stock511.x3p": (
-        95_988,
-        "be90b7ee572992be6434d783cd8fee33d84ee35a2a77ed133e4d401229a877d1",
+    "r9_stock511.x3p": (
+        98_320,
+        "7ddb1949e3bbf2f561134213e886fd6d93153562f274420842a547776f42b5c0",
     ),
     "ffinit.bin": (
         40_808,
-        "a218eca392f6d1a645ff1e8388dada4325a9b0a8bb30a3ffc75d7429b8085983",
+        "1b83b4547eac786b9ab062b6e0bb56438f06cae58d479ac1246ff7633b76414f",
     ),
     "ffboot.bin": (
         30_937_088,
-        "d4bc67e9ca10f25e45c60845be8d7e22ad0264bb8cb0f1186a9f3695a589225b",
+        "27c5e6596bfdaeaec7c6a129da32a99662908138c5c2d8f3fdbbeaf517ceac2a",
     ),
     "FWUP0019.DAT": (
         50_136_252,
-        "59658c432421b60d986d1815d50a685d078ebc5222647ea140572d0f979f08a0",
+        "d4e8950d61915d7716c2b408783b35d7e831084f70e8f1507dd9793cfb90cfb9",
     ),
 }
 
-EXPECTED_DAT_MAIN_CSUM = 0xAD1E4ED5
+EXPECTED_DAT_MAIN_CSUM = 0xAD0EAD23
 
 
 def verify_file(item: Path) -> bool:
@@ -72,7 +72,7 @@ def main(argv: list[str]) -> int:
                     failed += 1
 
     if checked == 0:
-        print("No known R6 patch or output files found in the specified path(s).")
+        print("No known R9 patch or output files found in the specified path(s).")
         print("Expected filenames:", ", ".join(EXPECTED.keys()))
         return 1
 
