@@ -1,5 +1,7 @@
 # Fujifilm X-T3 Hardened R9 Patcher (based on Stock 5.11)
 
+**中文** | [English](README_EN.md)
+
 > ⚠️ **免责声明与版权合规说明 / DISCLAIMER & COPYRIGHT NOTICE**
 >
 > - 本仓库与 Release **不包含任何富士胶片（FUJIFILM）原厂固件二进制文件**，仅提供约 **96 KB** 的纯 XOR 差分补丁（`r9_stock511.x3p`）与零依赖 Python 本地合成脚本（`build_r9.py`）。用户需自行前往富士官网下载官方原厂 X-T3 5.11 固件 `FWUP0019.DAT`，在自己电脑上本地还原全部测试包与固件文件。
